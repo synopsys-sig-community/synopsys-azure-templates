@@ -4,6 +4,11 @@ parameters:
 
 jobs:
   - job: CoverityOnPolaris
+
+    variables:
+      POLARIS_URL: ${{ parameters.polaris_url }}
+      POLARIS_ACCESS_TOKEN: ${{ parameters.polaris_token }}
+
     steps:
       # Linux
       - bash: |
