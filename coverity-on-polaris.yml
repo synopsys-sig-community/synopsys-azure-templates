@@ -10,7 +10,7 @@ jobs:
       POLARIS_URL: ${{ parameters.polaris_url }}
       POLARIS_ACCESS_TOKEN: ${{ parameters.polaris_token }}
       SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
-      SECURITY_GATE_ARGS: {{ parameters.security_gate_args }}
+      SECURITY_GATE_ARGS: ${{ parameters.security_gate_args }}
 
     steps:
       # Linux
