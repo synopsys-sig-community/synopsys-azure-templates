@@ -12,7 +12,7 @@ jobs:
       POLARIS_ACCESS_TOKEN: ${{ parameters.polaris_token }}
       SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
       SECURITY_GATE_ARGS: ${{ parameters.security_gate_args }}
-      SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
+      SYSTEM_ACCESSTOKEN_PARAM: ${{ parameters.system_accesstoken }}
 
     steps:
       # Linux
@@ -34,7 +34,9 @@ jobs:
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
         displayName: Get Polaris Download for Windows
 
-      - bash: echo POLARIS_URL=$POLARIS_URL POLARIS_ACCESS_TOKEN=$POLARIS_ACCESS_TOKEN POLARIS_DOWNLOAD=$POLARIS_DOWNLOAD SYSTEM_ACCESSTOKEN=$SYSTEM_ACCESSTOKEN
+      - bash: echo POLARIS_URL=$POLARIS_URL POLARIS_ACCESS_TOKEN=$POLARIS_ACCESS_TOKEN POLARIS_DOWNLOAD=$POLARIS_DOWNLOAD SYSTEM_ACCESSTOKEN=$SYSTEM_ACCESSTOKEN SYSTEM_ACCESSTOKEN_PARAM=$SYSTEM_ACCESSTOKEN_PARAM
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
       - bash: curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
         displayName: Download Polaris CLI
@@ -62,6 +64,8 @@ jobs:
         displayName: Install Python Module Dependencies
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank --debug 5
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Create Work Items for New Issues
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank --debug 5 $SECURITY_GATE_ARGS --exit1-if-issues
