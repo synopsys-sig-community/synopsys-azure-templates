@@ -30,6 +30,8 @@ jobs:
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
         displayName: Get Polaris Download for Windows
 
+      - bash: echo POLARIS_URL=$POLARIS_URL POLARIS_ACCESS_TOKEN=$POLARIS_ACCESS_TOKEN POLARIS_DOWNLOAD=$POLARIS_DOWNLOAD
+
       - bash: curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
         displayName: Download Polaris CLI
 
