@@ -64,3 +64,6 @@ jobs:
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank --debug 5 $SECURITY_GATE_ARGS --exit1-if-issues
         displayName: Check Polaris Security Gate
+        # TODO: Also pass access token this way
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
