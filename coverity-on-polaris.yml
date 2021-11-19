@@ -2,6 +2,7 @@ parameters:
   polaris_url: ""
   polaris_token: ""
   security_gate_args: "--new"
+  system_accesstoken: ""
 
 jobs:
   - job: CoverityOnPolaris
@@ -66,4 +67,4 @@ jobs:
         displayName: Check Polaris Security Gate
         # TODO: Also pass access token this way
         env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
