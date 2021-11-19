@@ -1,6 +1,7 @@
 parameters:
   polaris_url: ""
   polaris_token: ""
+  security_gate_args: "--new"
 
 jobs:
   - job: CoverityOnPolaris
@@ -9,6 +10,7 @@ jobs:
       POLARIS_URL: ${{ parameters.polaris_url }}
       POLARIS_ACCESS_TOKEN: ${{ parameters.polaris_token }}
       SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
+      SECURITY_GATE_ARGS: {{ parameters.security_gate_args }}
 
     steps:
       # Linux
@@ -57,5 +59,8 @@ jobs:
       - script: $(pyTools.pythonLocation)/bin/pip install --upgrade pandas requests jsonapi_requests
         displayName: Install Python Module Dependencies
 
-      - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank --debug 5 --new --exit1-if-issues
+      - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank --debug 5
+        displayName: Create Work Items for New Issues
+
+      - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank --debug 5 $SECURITY_GATE_ARGS --exit1-if-issues
         displayName: Check Polaris Security Gate
