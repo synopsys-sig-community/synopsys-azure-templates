@@ -9,8 +9,8 @@ jobs:
       - bash: |
           export DOWNLOAD=$POLARIS_URL/api/tools/polaris_cli-linux64.zip
           echo "##vso[task.setvariable variable=POLARIS_DOWNLOAD]$DOWNLOAD"
-      condition: eq( variables['Agent.OS'], 'Linux' )
-      displayName: Get Polaris Download for Linux
+        condition: eq( variables['Agent.OS'], 'Linux' )
+        displayName: Get Polaris Download for Linux
       # macOS
       - bash: |
           export DOWNLOAD=$POLARIS_URL/api/tools/polaris_cli-macosx.zip
