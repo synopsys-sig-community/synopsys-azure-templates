@@ -8,6 +8,7 @@ jobs:
     variables:
       POLARIS_URL: ${{ parameters.polaris_url }}
       POLARIS_ACCESS_TOKEN: ${{ parameters.polaris_token }}
+      SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
 
     steps:
       # Linux
@@ -39,3 +40,21 @@ jobs:
         displayName: Configure Polaris
 
       - bash: ./polaris-cli/polaris analyze -w
+        displayName: Coverity SAST (Full analysis)
+
+      - bash: -
+          git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
+        displayName: Get Synopsys Azure Tools
+
+      - task: UsePythonVersion@0
+        displayName: Get Python Interpreter
+        inputs:
+          versionSpec: '3.7'
+          addToPath: true
+        name: pyTools
+
+      - script: $(pyTools.pythonLocation)/bin/pip install --upgrade pandas requests jsonapi_requests
+        displayName: Install Python Module Dependencies
+
+      - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank --debug 5 --new --exit1-if-issues
+        displayName: Check Polaris Security Gate
