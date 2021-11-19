@@ -42,8 +42,7 @@ jobs:
       - bash: ./polaris-cli/polaris analyze -w
         displayName: Coverity SAST (Full analysis)
 
-      - bash: -
-          git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
+      - bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
         displayName: Get Synopsys Azure Tools
 
       - task: UsePythonVersion@0
