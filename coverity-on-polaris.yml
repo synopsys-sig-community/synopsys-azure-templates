@@ -12,6 +12,7 @@ jobs:
       POLARIS_ACCESS_TOKEN: ${{ parameters.polaris_token }}
       SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
       SECURITY_GATE_ARGS: ${{ parameters.security_gate_args }}
+      SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
 
     steps:
       # Linux
@@ -33,7 +34,7 @@ jobs:
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
         displayName: Get Polaris Download for Windows
 
-      - bash: echo POLARIS_URL=$POLARIS_URL POLARIS_ACCESS_TOKEN=$POLARIS_ACCESS_TOKEN POLARIS_DOWNLOAD=$POLARIS_DOWNLOAD
+      - bash: echo POLARIS_URL=$POLARIS_URL POLARIS_ACCESS_TOKEN=$POLARIS_ACCESS_TOKEN POLARIS_DOWNLOAD=$POLARIS_DOWNLOAD SYSTEM_ACCESSTOKEN=$SYSTEM_ACCESSTOKEN
 
       - bash: curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
         displayName: Download Polaris CLI
