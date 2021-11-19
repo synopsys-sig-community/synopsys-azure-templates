@@ -1,0 +1,30 @@
+steps:
+  # Linux
+  - bash: |
+    export DOWNLOAD=$POLARIS_URL/api/tools/polaris_cli-linux64.zip
+    echo "##vso[task.setvariable variable=POLARIS_DOWNLOAD]$DOWNLOAD"
+  condition: eq( variables['Agent.OS'], 'Linux' )
+  displayName: Get Polaris Download for Linux
+  # macOS
+  - bash: |
+    export DOWNLOAD=$POLARIS_URL/api/tools/polaris_cli-macosx.zip
+    echo "##vso[task.setvariable variable=POLARIS_DOWNLOAD]$DOWNLOAD"
+    condition: eq( variables['Agent.OS'], 'Darwin' )
+    displayName: Get Polaris Download for macOS
+  # Windows
+  - powershell: |
+    Set-Variable -Name DOWNLOAD -Value $POLARIS_URL/api/tools/polaris_cli-win64.zip
+    echo "##vso[task.setvariable variable=POLARIS_DOWNLOAD]$DOWNLOAD"
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+    displayName: Get Polaris Download for Windows
+
+  - bash: curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
+    displayName: Download Polaris CLI
+
+  - bash: unzip -j -d polaris-cli polaris.zip
+    displayName: Unpack Polaris CLI
+
+  - bash: ./polaris-cli/polaris --persist-config --co capture.build.buildCommands="null" --co capture.build.cleanCommands="null" --co capture.fileSystem="null" --co capture.coverity.autoCapture="enable" --co serverUrl=$POLARIS_URL configure
+    displayName: Configure Polaris
+
+  - bash: ./polaris-cli/polaris analyze -w
