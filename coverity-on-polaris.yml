@@ -34,10 +34,6 @@ jobs:
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
         displayName: Get Polaris Download for Windows
 
-      - bash: echo POLARIS_URL=$POLARIS_URL POLARIS_ACCESS_TOKEN=$POLARIS_ACCESS_TOKEN POLARIS_DOWNLOAD=$POLARIS_DOWNLOAD SYSTEM_ACCESSTOKEN=$SYSTEM_ACCESSTOKEN SYSTEM_ACCESSTOKEN_PARAM=$SYSTEM_ACCESSTOKEN_PARAM
-        env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-
       - bash: curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
         displayName: Download Polaris CLI
 
@@ -49,6 +45,19 @@ jobs:
 
       - bash: ./polaris-cli/polaris analyze -w
         displayName: Coverity SAST (Full analysis)
+        # Only run full analysis if it is NOT a pull request
+        condition: not(eq(variables['Build.Reason'], 'PullRequest'))
+
+      - bash: |
+          REMOVE="refs/heads/"
+          export POLARIS_FF_ENABLE_COVERITY_INCREMENTAL=true
+          export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
+          git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only > ./change-set.txt
+          set -x
+          ./polaris-cli/polaris analyze -w --coverity-ignore-capture-failure --incremental ./change-set.txt
+        displayName: 'Coverity Static Analysis (Incremental)'
+        # Only run incremental analysis if it IS a pull request
+        condition: eq(variables['Build.Reason'], 'PullRequest')
 
       - bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
         displayName: Get Synopsys Azure Tools
@@ -67,9 +76,18 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Create Work Items for New Issues
+        # Only create work items for pushes to a main branch
+        condition: not(eq(variables['Build.Reason'], 'PullRequest'))
+
+      - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-annotate-pr.py
+        displayName: Annotate pull request
+        env:
+          SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
+        condition: eq(variables['Build.Reason'], 'PullRequest')
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank --debug 5 $SECURITY_GATE_ARGS --exit1-if-issues
         displayName: Check Polaris Security Gate
         # TODO: Also pass access token this way
         env:
           SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
+        condition: not(eq(variables['Build.Reason'], 'PullRequest'))
