@@ -34,19 +34,21 @@ jobs:
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
         displayName: Get Polaris Download for Windows
 
-      - bash: curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
-        displayName: Download Polaris CLI
-
-      - bash: unzip -j -d polaris-cli polaris.zip
-        displayName: Unpack Polaris CLI
-
-      - bash: ./polaris-cli/polaris --persist-config --co capture.build.buildCommands="null" --co capture.build.cleanCommands="null" --co capture.fileSystem="null" --co capture.coverity.autoCapture="enable" --co serverUrl=$POLARIS_URL configure
-        displayName: Configure Polaris
+      - bash: |
+          curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
+          unzip -j -d polaris-cli polaris.zip
+          ./polaris-cli/polaris --persist-config --co capture.build.buildCommands="null" --co capture.build.cleanCommands="null" --co capture.fileSystem="null" --co capture.coverity.autoCapture="enable" --co serverUrl=$POLARIS_URL configure
+        displayName: Download and install Polaris CLI
+        # Set up Polaris for builds against master/stage/release or pull requests against the,
+        condition: |
+          or(in(variables['Build.SourceBranchName'],'master','stage','release'), 
+          in(variables['System.PullRequest.TargetBranch'],'refs/heads/master','refs/heads/stage','refs/heads/release'))
 
       - bash: ./polaris-cli/polaris analyze -w
         displayName: Coverity SAST (Full analysis)
-        # Only run full analysis if it is NOT a pull request
-        condition: not(eq(variables['Build.Reason'], 'PullRequest'))
+        # Run full analysis only on builds of master/stage/release, not on pull requests
+        condition: |
+          and(in(variables['Build.SourceBranchName'],'master','stage','release'), not(eq(variables['Build.Reason'], 'PullRequest')))
 
       - bash: |
           REMOVE="refs/heads/"
@@ -61,6 +63,9 @@ jobs:
 
       - bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
         displayName: Get Synopsys Azure Tools
+        condition: |
+          or(in(variables['Build.SourceBranchName'],'master','stage','release'),·
+          in(variables['System.PullRequest.TargetBranch'],'refs/heads/master','refs/heads/stage','refs/heads/release'))
 
       - task: UsePythonVersion@0
         displayName: Get Python Interpreter
@@ -68,16 +73,23 @@ jobs:
           versionSpec: '3.7'
           addToPath: true
         name: pyTools
+        condition: |
+          or(in(variables['Build.SourceBranchName'],'master','stage','release'),·
+          in(variables['System.PullRequest.TargetBranch'],'refs/heads/master','refs/heads/stage','refs/heads/release'))
 
       - script: $(pyTools.pythonLocation)/bin/pip install --upgrade pandas requests jsonapi_requests
         displayName: Install Python Module Dependencies
+        condition: |
+          or(in(variables['Build.SourceBranchName'],'master','stage','release'),·
+          in(variables['System.PullRequest.TargetBranch'],'refs/heads/master','refs/heads/stage','refs/heads/release'))
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank --debug 5
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Create Work Items for New Issues
         # Only create work items for pushes to a main branch
-        condition: not(eq(variables['Build.Reason'], 'PullRequest'))
+        condition: |
+          and(in(variables['Build.SourceBranchName'],'master','stage','release'), not(eq(variables['Build.Reason'], 'PullRequest')))
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-annotate-pr.py
         displayName: Annotate pull request
@@ -90,4 +102,5 @@ jobs:
         # TODO: Also pass access token this way
         env:
           SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
-        condition: not(eq(variables['Build.Reason'], 'PullRequest'))
+        condition: |
+          and(in(variables['Build.SourceBranchName'],'master','stage','release'), not(eq(variables['Build.Reason'], 'PullRequest')))
