@@ -1,0 +1,63 @@
+parameters:
+  coverity_url: ""
+  coverity_username: ""
+  coverity_passphrase: ""
+  coverity_checkers: "--webapp-security"
+  security_gate_view: ""
+  system_accesstoken: ""
+
+jobs:
+  - job: Coverity
+
+    variables:
+      COVERITY_URL: ${{ parameters.coverity_url }}
+      COV_USER: ${{ parameters.coverity_username }}
+      COVERITY_PASSPHRASE: ${{ parameters.coverity_passphrase }}
+      SYSTEM_ACCESSTOKEN_PARAM: ${{ parameters.system_accesstoken }}
+      COVERITY_CONFIG: ./coverity-data/coverity_config.xml
+
+    steps:
+      # Auto-capture source code - all of it, for full analysis
+      - bash: |
+          cov-capture --project-dir . --dir ./coverity-data/idir
+        displayName: Capture source code (Full)
+        # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.SourceBranchName'], 'master')
+
+      # Auto-capture source code - just changed files, for incremental analysis
+      - bash: |
+          git --no-pager diff origin/main --name-only > coverity-changed-files.txt
+          cov-capture --project-dir . --dir ./coverity-data/idir --source-list change-set.txt
+        displayName: Capture source code (Incremental)
+        # Only annotate pull requests if... we are building for a pull request
+        condition: eq(variables['Build.Reason'], 'PullRequest')
+
+      # Run full analysis
+      - bash: |
+          cov-analze --dir ./coverity-data/idir ${{ parameters.coverity_checkers }}
+        displayName: Analyze source (full)
+        # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.SourceBranchName'], 'master')
+
+      # Run incremental analysis
+      - bash: |
+          cov-run-desktop --dir coverity-data/idir --url ${{ parameters.coverity_url }} coverity-changed-files.txt
+        displayName: Analyze source (incremental)
+        # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.Reason'], 'PullRequest')
+
+      #- bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
+      #  displayName: Get Synopsys Azure Tools
+      #  # Get automation if either master or pull request
+      #  condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+
+      #- script: pip3 install --upgrade pandas requests jsonapi_requests
+      #  displayName: Install Python Module Dependencies
+      #  condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+
+      #- script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank --debug 5
+      #  env:
+      #    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      #  displayName: Create Work Items for New Issues
+      #  # Only create work items for pushes to a main branch
+      #  condition: eq(variables['Build.SourceBranchName'], 'master')
