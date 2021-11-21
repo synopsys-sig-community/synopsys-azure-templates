@@ -63,14 +63,15 @@ jobs:
         # Get automation if either master or pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      - task: UsePythonVersion@0
-        displayName: Get Python Interpreter
-        inputs:
-          versionSpec: '3.7'
-          addToPath: true
-        name: pyTools
-        # Set up Python if it is master or a pull request
-        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+      # Only use this for microsoft-hosted environments
+      #- task: UsePythonVersion@0
+      #  displayName: Get Python Interpreter
+      #  inputs:
+      #    versionSpec: '3.7'
+      #    addToPath: true
+      #  name: pyTools
+      #  # Set up Python if it is master or a pull request
+      #  condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
       - script: $(pyTools.pythonLocation)/bin/pip install --upgrade pandas requests jsonapi_requests
         displayName: Install Python Module Dependencies
