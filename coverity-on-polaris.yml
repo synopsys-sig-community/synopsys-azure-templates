@@ -39,16 +39,13 @@ jobs:
           unzip -j -d polaris-cli polaris.zip
           ./polaris-cli/polaris --persist-config --co capture.build.buildCommands="null" --co capture.build.cleanCommands="null" --co capture.fileSystem="null" --co capture.coverity.autoCapture="enable" --co serverUrl=$POLARIS_URL configure
         displayName: Download and install Polaris CLI
-        # Set up Polaris for builds against master/stage/release or pull requests against the,
-        condition: |
-          or(in(variables['Build.SourceBranchName'],'master','stage','release'), 
-          in(variables['System.PullRequest.TargetBranch'],'refs/heads/master','refs/heads/stage','refs/heads/release'))
+        # Set up Polaris CLI if this is either a build against master, or a pull request
+        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
       - bash: ./polaris-cli/polaris analyze -w
         displayName: Coverity SAST (Full analysis)
-        # Run full analysis only on builds of master/stage/release, not on pull requests
-        condition: |
-          and(in(variables['Build.SourceBranchName'],'master','stage','release'), not(eq(variables['Build.Reason'], 'PullRequest')))
+        # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.SourceBranchName'], 'master')
 
       - bash: |
           REMOVE="refs/heads/"
@@ -63,9 +60,8 @@ jobs:
 
       - bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
         displayName: Get Synopsys Azure Tools
-        condition: |
-          or(in(variables['Build.SourceBranchName'],'master','stage','release'),·
-          in(variables['System.PullRequest.TargetBranch'],'refs/heads/master','refs/heads/stage','refs/heads/release'))
+        # Get automation if either master or pull request
+        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
       - task: UsePythonVersion@0
         displayName: Get Python Interpreter
@@ -73,28 +69,25 @@ jobs:
           versionSpec: '3.7'
           addToPath: true
         name: pyTools
-        condition: |
-          or(in(variables['Build.SourceBranchName'],'master','stage','release'),·
-          in(variables['System.PullRequest.TargetBranch'],'refs/heads/master','refs/heads/stage','refs/heads/release'))
+        # Set up Python if it is master or a pull request
+        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
       - script: $(pyTools.pythonLocation)/bin/pip install --upgrade pandas requests jsonapi_requests
         displayName: Install Python Module Dependencies
-        condition: |
-          or(in(variables['Build.SourceBranchName'],'master','stage','release'),·
-          in(variables['System.PullRequest.TargetBranch'],'refs/heads/master','refs/heads/stage','refs/heads/release'))
+        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank --debug 5
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Create Work Items for New Issues
         # Only create work items for pushes to a main branch
-        condition: |
-          and(in(variables['Build.SourceBranchName'],'master','stage','release'), not(eq(variables['Build.Reason'], 'PullRequest')))
+        condition: eq(variables['Build.SourceBranchName'], 'master')
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-annotate-pr.py
         displayName: Annotate pull request
         env:
           SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
+        # Only annotate pull requests if... we are building for a pull request
         condition: eq(variables['Build.Reason'], 'PullRequest')
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank --debug 5 $SECURITY_GATE_ARGS --exit1-if-issues
@@ -102,5 +95,6 @@ jobs:
         # TODO: Also pass access token this way
         env:
           SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
-        condition: |
-          and(in(variables['Build.SourceBranchName'],'master','stage','release'), not(eq(variables['Build.Reason'], 'PullRequest')))
+        # Break the build on central results only on master
+        # TODO break the build differently on pull request
+        condition: eq(variables['Build.SourceBranchName'], 'master')
