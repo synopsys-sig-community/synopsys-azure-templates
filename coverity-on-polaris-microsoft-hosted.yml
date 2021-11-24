@@ -47,8 +47,8 @@ jobs:
         inputs:
           key: '"synopsys-v2" | "$(Agent.OS)"'
           restoreKeys: |
-            synopsys | "$(Agent.OS)"
-            synopsys
+            synopsys-v2 | "$(Agent.OS)"
+            synopsys-v2
           path: $(SYNOPSYS_CACHE_FOLDER)
         displayName: Cache Synopsys Downloads
 
