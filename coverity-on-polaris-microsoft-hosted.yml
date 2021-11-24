@@ -13,7 +13,7 @@ jobs:
       SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
       SECURITY_GATE_ARGS: ${{ parameters.security_gate_args }}
       SYSTEM_ACCESSTOKEN_PARAM: ${{ parameters.system_accesstoken }}
-      SYNOPSYS_CACHE_FOLDER: /home/vsts/.synopsys/polaris/coverity-analysis-tools
+      #SYNOPSYS_CACHE_FOLDER: /home/vsts/.synopsys/polaris/coverity-analysis-tools
 
     steps:
       # Linux
@@ -47,14 +47,11 @@ jobs:
       # - Cache is reset on new branches, so for short-lived branches or branches with a single PR
       #   the benefit will not be as pronounced.
       # - Restoring large cached objects on Windows build agents can be very slow, reducing the benefit
-      - task: Cache@2
-        inputs:
-          key: '"v2" | "synopsys" | "$(Agent.OS)"'
-          path: $(SYNOPSYS_CACHE_FOLDER)
-        displayName: Cache Synopsys Downloads
-
-      - bash: find /home/vsts/.synopsys/polaris/coverity-analysis-tools -print || true
-        displayName: Debug caching
+      #- task: Cache@2
+      #  inputs:
+      #    key: '"synopsys" | "$(Agent.OS)"'
+      #    path: $(SYNOPSYS_CACHE_FOLDER)
+      #  displayName: Cache Synopsys Downloads
 
       - bash: ./polaris-cli/polaris analyze -w
         displayName: Coverity SAST (Full analysis)
@@ -104,7 +101,6 @@ jobs:
           SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
         # Only annotate pull requests if... we are building for a pull request
         condition: eq(variables['Build.Reason'], 'PullRequest')
-        continueOnError: true
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank --debug 5 $SECURITY_GATE_ARGS --exit1-if-issues
         displayName: Check Polaris Security Gate
@@ -114,7 +110,3 @@ jobs:
         # Break the build on central results only on master
         # TODO break the build differently on pull request
         condition: eq(variables['Build.SourceBranchName'], 'master')
-        continueOnError: true
-
-      - bash: find /home/vsts/.synopsys/polaris/coverity-analysis-tools -print || true
-        displayName: Debug caching
