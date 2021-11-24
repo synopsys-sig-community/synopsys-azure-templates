@@ -13,7 +13,7 @@ jobs:
       SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
       SECURITY_GATE_ARGS: ${{ parameters.security_gate_args }}
       SYSTEM_ACCESSTOKEN_PARAM: ${{ parameters.system_accesstoken }}
-      SYNOPSYS_CACHE_FOLDER: /home/vsts
+      SYNOPSYS_CACHE_FOLDER: /home/vsts/.synopsys/polaris/coverity-analysis-tools
 
     steps:
       # Linux
