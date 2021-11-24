@@ -43,13 +43,17 @@ jobs:
         # Set up Polaris CLI if this is either a build against master, or a pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
+      # Notes:
+      # - Cache is reset on new branches, so for short-lived branches or branches with a single PR
+      #   the benefit will not be as pronounced.
+      # - Restoring large cached objects on Windows build agents can be very slow, reducing the benefit
       - task: Cache@2
         inputs:
           key: '"v2" | "synopsys" | "$(Agent.OS)"'
           path: $(SYNOPSYS_CACHE_FOLDER)
         displayName: Cache Synopsys Downloads
 
-      - bash: find /home/vsts/.synopsys/polaris/coverity-analysis-tools -print
+      - bash: find /home/vsts/.synopsys/polaris/coverity-analysis-tools -print || true
         displayName: Debug caching
 
       - bash: ./polaris-cli/polaris analyze -w
@@ -112,5 +116,5 @@ jobs:
         condition: eq(variables['Build.SourceBranchName'], 'master')
         continueOnError: true
 
-      - bash: find /home/vsts/.synopsys/polaris/coverity-analysis-tools -print
+      - bash: find /home/vsts/.synopsys/polaris/coverity-analysis-tools -print || true
         displayName: Debug caching
