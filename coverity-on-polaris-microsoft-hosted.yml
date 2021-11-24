@@ -45,10 +45,7 @@ jobs:
 
       - task: Cache@2
         inputs:
-          key: '"synopsys-v2" | "$(Agent.OS)"'
-          restoreKeys: |
-            synopsys-v2 | "$(Agent.OS)"
-            synopsys-v2
+          key: '"v2" | "synopsys" | "$(Agent.OS)"'
           path: $(SYNOPSYS_CACHE_FOLDER)
         displayName: Cache Synopsys Downloads
 
@@ -112,3 +109,6 @@ jobs:
         # Break the build on central results only on master
         # TODO break the build differently on pull request
         condition: eq(variables['Build.SourceBranchName'], 'master')
+
+      - bash: find /home/vsts/.synopsys/polaris/coverity-analysis-tools -print
+        displayName: Debug caching
