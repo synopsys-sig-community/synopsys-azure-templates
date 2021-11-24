@@ -45,7 +45,7 @@ jobs:
 
       - task: Cache@2
         inputs:
-          key: '"synopsys" | "$(Agent.OS)"'
+          key: '"synopsys-v2" | "$(Agent.OS)"'
           restoreKeys: |
             synopsys | "$(Agent.OS)"
             synopsys
