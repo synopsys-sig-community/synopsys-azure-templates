@@ -52,6 +52,9 @@ jobs:
           path: $(SYNOPSYS_CACHE_FOLDER)
         displayName: Cache Synopsys Downloads
 
+      - bash: find /home/vsts/.synopsys/polaris/coverity-analysis-tools -print
+        displayName: Debug caching
+
       - bash: ./polaris-cli/polaris analyze -w
         displayName: Coverity SAST (Full analysis)
         # Run full analysis only on builds of master, not on pull requests
