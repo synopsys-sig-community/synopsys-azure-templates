@@ -55,7 +55,7 @@ jobs:
       #  displayName: Install Python Module Dependencies
       #  condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      #- script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank --debug 5
+      #- script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank
       #  env:
       #    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       #  displayName: Create Work Items for New Issues

@@ -67,7 +67,7 @@ jobs:
         displayName: Install Python Module Dependencies
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      - script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank --debug 5
+      - script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Create Work Items for New Issues
@@ -81,7 +81,7 @@ jobs:
         # Only annotate pull requests if... we are building for a pull request
         condition: eq(variables['Build.Reason'], 'PullRequest')
 
-      - script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank --debug 5 $SECURITY_GATE_ARGS --exit1-if-issues
+      - script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank $SECURITY_GATE_ARGS --exit1-if-issues
         displayName: Check Polaris Security Gate
         # TODO: Also pass access token this way
         env:
