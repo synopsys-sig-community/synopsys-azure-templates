@@ -17,6 +17,18 @@ jobs:
       COVERITY_CONFIG: ./coverity-data/coverity_config.xml
 
     steps:
+
+      # Create project and stream if they don't exist
+      - bash: |
+          export COVERITY_STREAM_NAME=${Build.Repository.Name##*/}-${Build.SourceBranch##*/}
+          echo Ensure that stream "$COVERITY_STREAM_NAME" exists
+          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
+          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
+          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME"
+        displayName: Create project and stream
+        # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.SourceBranchName'], 'master')
+
       # Auto-capture source code - all of it, for full analysis
       - bash: |
           cov-capture --project-dir . --dir ./coverity-data/idir
@@ -38,6 +50,14 @@ jobs:
         displayName: Analyze source (full)
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
+
+      # Commit full analysis
+      #- bash: |
+      #  cov-commit-defects --url $COVERITY_URL --stream insecure-bank --preview-report-v2 coverityResults.json --dir idir
+      #  cov-analyze --dir ./coverity-data/idir ${{ parameters.coverity_checkers }}
+      #  displayName: Analyze source (full)
+      #    # Run full analysis only on builds of master, not on pull requests
+      #  condition: eq(variables['Build.SourceBranchName'], 'master')
 
       # Run incremental analysis
       - bash: |
