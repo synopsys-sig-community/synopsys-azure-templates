@@ -34,7 +34,7 @@ jobs:
 
       # Run full analysis
       - bash: |
-          cov-analze --dir ./coverity-data/idir ${{ parameters.coverity_checkers }}
+          cov-analyze --dir ./coverity-data/idir ${{ parameters.coverity_checkers }}
         displayName: Analyze source (full)
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
