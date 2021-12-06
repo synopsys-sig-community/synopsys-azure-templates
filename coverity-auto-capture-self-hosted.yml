@@ -22,6 +22,7 @@ jobs:
       - bash: |
           export COVERITY_STREAM_NAME=${Build.Repository.Name##*/}-${Build.SourceBranch##*/}
           echo Ensure that stream "$COVERITY_STREAM_NAME" exists
+          env
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME"
