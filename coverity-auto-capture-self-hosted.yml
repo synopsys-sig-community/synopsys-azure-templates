@@ -55,10 +55,9 @@ jobs:
       # Commit full analysis
       - bash: |
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
-          cov-commit-defects --url $COVERITY_URL --stream $COVERITY_STREAM_NAME --dir idir --on-new-cert trust --ticker-mode no-spin
-          cov-analyze --dir ./coverity-data/idir ${{ parameters.coverity_checkers }}
-        displayName: Analyze source (full)
-          # Run full analysis only on builds of master, not on pull requests
+          cov-commit-defects --url $COVERITY_URL --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
+        displayName: Commit full analysis results
+        # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
 
       # Run incremental analysis
