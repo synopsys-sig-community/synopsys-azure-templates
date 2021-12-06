@@ -20,9 +20,8 @@ jobs:
 
       # Create project and stream if they don't exist
       - bash: |
-          export COVERITY_STREAM_NAME=${Build.Repository.Name##*/}-${Build.SourceBranch##*/}
+          export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
           echo Ensure that stream "$COVERITY_STREAM_NAME" exists
-          env
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME"
@@ -47,18 +46,19 @@ jobs:
 
       # Run full analysis
       - bash: |
-          cov-analyze --dir ./coverity-data/idir ${{ parameters.coverity_checkers }}
+          cov-analyze --dir ./coverity-data/idir --ticker-mode no-spin ${{ parameters.coverity_checkers }}
         displayName: Analyze source (full)
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
 
       # Commit full analysis
-      #- bash: |
-      #  cov-commit-defects --url $COVERITY_URL --stream insecure-bank --preview-report-v2 coverityResults.json --dir idir
-      #  cov-analyze --dir ./coverity-data/idir ${{ parameters.coverity_checkers }}
-      #  displayName: Analyze source (full)
-      #    # Run full analysis only on builds of master, not on pull requests
-      #  condition: eq(variables['Build.SourceBranchName'], 'master')
+      - bash: |
+        export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
+        cov-commit-defects --url $COVERITY_URL --stream $COVERITY_STREAM_NAME --dir idir --on-new-cert trust --ticker-mode no-spin
+        cov-analyze --dir ./coverity-data/idir ${{ parameters.coverity_checkers }}
+        displayName: Analyze source (full)
+          # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.SourceBranchName'], 'master')
 
       # Run incremental analysis
       - bash: |
@@ -67,14 +67,14 @@ jobs:
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.Reason'], 'PullRequest')
 
-      #- bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
-      #  displayName: Get Synopsys Azure Tools
-      #  # Get automation if either master or pull request
-      #  condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+      - bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
+        displayName: Get Synopsys Azure Tools
+        # Get automation if either master or pull request
+        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      #- script: pip3 install --upgrade pandas requests jsonapi_requests
-      #  displayName: Install Python Module Dependencies
-      #  condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+      - script: pip3 install --upgrade pandas requests jsonapi_requests
+        displayName: Install Python Module Dependencies
+        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
       #- script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank
       #  env:
