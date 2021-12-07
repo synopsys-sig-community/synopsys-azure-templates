@@ -46,9 +46,11 @@ jobs:
       # Auto-capture source code - just changed files, for incremental analysis
       - bash: |
           REMOVE="refs/heads/"
-          export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
+          echo export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
           echo git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only
-          git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only > coverity-changed-files.txt
+          export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
+          git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only > ./change-set.txt
+          set -x
           cov-capture --project-dir . --dir ./coverity-data/idir --source-list coverity-changed-files.txt
         displayName: Capture source code (Incremental)
         # Only annotate pull requests if... we are building for a pull request
