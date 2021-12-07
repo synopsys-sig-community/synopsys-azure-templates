@@ -47,9 +47,9 @@ jobs:
       - bash: |
           REMOVE="refs/heads/"
           echo export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
-          echo git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only
+          echo git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only
           export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
-          git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only > ./change-set.txt
+          git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only > ./coverity-changed-files.txt
           set -x
           cov-capture --project-dir . --dir ./coverity-data/idir --source-list coverity-changed-files.txt
         displayName: Capture source code (Incremental)
@@ -79,8 +79,8 @@ jobs:
       - bash: |
           REMOVE="refs/heads/"
           export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
-          echo git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only
-          git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only > coverity-changed-files.txt
+          echo git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only
+          git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only > coverity-changed-files.txt
           cov-run-desktop --dir coverity-data/idir --url ${{ parameters.coverity_url }} coverity-changed-files.txt
         displayName: Analyze source (incremental)
         # Run full analysis only on builds of master, not on pull requests
