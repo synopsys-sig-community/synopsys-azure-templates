@@ -63,6 +63,14 @@ jobs:
         # Get automation if either master or pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
+      - bash: python3 synopsys-azure-tools/git-assign-issues.py --url $POLARIS_URL --project jcroall-insecure-bank
+        displayName: Assign issues to owners
+          # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.SourceBranchName'], 'master')
+        env:
+          POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
+
+
       - script: pip3 install --upgrade pandas requests jsonapi_requests
         displayName: Install Python Module Dependencies
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))

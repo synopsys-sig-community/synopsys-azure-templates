@@ -13,7 +13,6 @@ jobs:
       SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
       SECURITY_GATE_ARGS: ${{ parameters.security_gate_args }}
       SYSTEM_ACCESSTOKEN_PARAM: ${{ parameters.system_accesstoken }}
-      #SYNOPSYS_CACHE_FOLDER: /home/vsts/.synopsys/polaris/coverity-analysis-tools
 
     steps:
       # Linux
@@ -43,16 +42,6 @@ jobs:
         # Set up Polaris CLI if this is either a build against master, or a pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      # Notes:
-      # - Cache is reset on new branches, so for short-lived branches or branches with a single PR
-      #   the benefit will not be as pronounced.
-      # - Restoring large cached objects on Windows build agents can be very slow, reducing the benefit
-      #- task: Cache@2
-      #  inputs:
-      #    key: '"synopsys" | "$(Agent.OS)"'
-      #    path: $(SYNOPSYS_CACHE_FOLDER)
-      #  displayName: Cache Synopsys Downloads
-
       - bash: ./polaris-cli/polaris analyze -w
         displayName: Coverity SAST (Full analysis)
         # Run full analysis only on builds of master, not on pull requests
@@ -74,6 +63,13 @@ jobs:
         # Get automation if either master or pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
+      - bash: python3 synopsys-azure-tools/git-assign-issues.py --url $POLARIS_URL --project $BUILD_REPOSITORY_NAME
+        displayName: Assign issues to owners
+          # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.SourceBranchName'], 'master')
+        env:
+          POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
+
       # Only use this for microsoft-hosted environments
       - task: UsePythonVersion@0
         displayName: Get Python Interpreter
@@ -88,7 +84,7 @@ jobs:
         displayName: Install Python Module Dependencies
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank
+      - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project $BUILD_REPOSITORY_NAME
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Create Work Items for New Issues
@@ -102,7 +98,7 @@ jobs:
         # Only annotate pull requests if... we are building for a pull request
         condition: eq(variables['Build.Reason'], 'PullRequest')
 
-      - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project jcroall-insecure-bank $SECURITY_GATE_ARGS --exit1-if-issues
+      - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project $BUILD_REPOSITORY_NAME $SECURITY_GATE_ARGS --exit1-if-issues
         displayName: Check Polaris Security Gate
         # TODO: Also pass access token this way
         env:
