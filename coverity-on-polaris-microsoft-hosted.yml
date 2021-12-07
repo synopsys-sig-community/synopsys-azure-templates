@@ -97,6 +97,7 @@ jobs:
           SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
         # Only annotate pull requests if... we are building for a pull request
         condition: eq(variables['Build.Reason'], 'PullRequest')
+        continueOnError: true
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN  --project $BUILD_REPOSITORY_NAME $SECURITY_GATE_ARGS --exit1-if-issues
         displayName: Check Polaris Security Gate
