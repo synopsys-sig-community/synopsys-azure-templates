@@ -87,6 +87,9 @@ jobs:
         displayName: Analyze source (incremental)
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.Reason'], 'PullRequest')
+        env:
+          COV_USER: $(COV_USER)
+          COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
 
       - bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
         displayName: Get Synopsys Azure Tools
