@@ -10,9 +10,9 @@ jobs:
   - job: Coverity
 
     variables:
-      COVERITY_URL_PARAM: ${{ parameters.coverity_url }}
-      COV_USER: ${{ parameters.coverity_username }}
-      COVERITY_PASSPHRASE_PARAM: ${{ parameters.coverity_passphrase }}
+      #COVERITY_URL: ${{ parameters.coverity_url }}
+      #COV_USER: ${{ parameters.coverity_username }}
+      #COVERITY_PASSPHRASE: ${{ parameters.coverity_passphrase }}
       SYSTEM_ACCESSTOKEN_PARAM: ${{ parameters.system_accesstoken }}
       COVERITY_CONFIG: ./coverity-data/coverity_config.xml
       SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
@@ -22,13 +22,14 @@ jobs:
       # Create project and stream if they don't exist
       - bash: |
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
+          env
           echo Ensure that stream "$COVERITY_STREAM_NAME" exists
-          echo cov-manage-im --url $COVERITY_URL_PARAM --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
-          echo cov-manage-im --url $COVERITY_URL_PARAM --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
-          echo cov-manage-im --url $COVERITY_URL_PARAM --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
-          cov-manage-im --url $COVERITY_URL_PARAM --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
-          cov-manage-im --url $COVERITY_URL_PARAM --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
-          cov-manage-im --url $COVERITY_URL_PARAM --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
+          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
+          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
+          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
+          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
+          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
+          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
         displayName: Create project and stream
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
@@ -58,8 +59,8 @@ jobs:
       # Commit full analysis
       - bash: |
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
-          echo cov-commit-defects --url ${COVERITY_URL_PARAM} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
-          cov-commit-defects --url ${COVERITY_URL_PARAM} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
+          echo cov-commit-defects --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
+          cov-commit-defects --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
         displayName: Commit full analysis results
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
