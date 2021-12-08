@@ -63,13 +63,6 @@ jobs:
         # Get automation if either master or pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      - bash: python3 synopsys-azure-tools/git-assign-issues.py --url $POLARIS_URL --project $BUILD_REPOSITORY_NAME
-        displayName: Assign issues to owners
-          # Run full analysis only on builds of master, not on pull requests
-        condition: eq(variables['Build.SourceBranchName'], 'master')
-        env:
-          POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
-
       # Only use this for microsoft-hosted environments
       - task: UsePythonVersion@0
         displayName: Get Python Interpreter
@@ -80,9 +73,16 @@ jobs:
         # Set up Python if it is master or a pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      - script: $(pyTools.pythonLocation)/bin/pip install --upgrade pandas requests jsonapi_requests
+      - script: $(pyTools.pythonLocation)/bin/pip install --upgrade pandas requests jsonapi_requests azure-devops
         displayName: Install Python Module Dependencies
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+
+      - bash: python3 synopsys-azure-tools/git-assign-issues.py --url $POLARIS_URL --project $BUILD_REPOSITORY_NAME
+        displayName: Assign issues to owners
+          # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.SourceBranchName'], 'master')
+        env:
+          POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project $BUILD_REPOSITORY_NAME
         env:
