@@ -97,12 +97,11 @@ jobs:
           POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project $BUILD_REPOSITORY_NAME
-        env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Create Work Items for New Issues
         # Only create work items for pushes to a main branch
         condition: eq(variables['Build.SourceBranchName'], 'master')
         env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
           POLARIS_URL: $(POLARIS_URL)
           POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
@@ -119,12 +118,10 @@ jobs:
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --project $BUILD_REPOSITORY_NAME $SECURITY_GATE_ARGS --exit1-if-issues
         displayName: Check Polaris Security Gate
-        # TODO: Also pass access token this way
-        env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         # Break the build on central results only on master
         # TODO break the build differently on pull request
         condition: eq(variables['Build.SourceBranchName'], 'master')
         env:
           POLARIS_URL: $(POLARIS_URL)
           POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
