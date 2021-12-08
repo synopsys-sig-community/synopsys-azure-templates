@@ -49,16 +49,16 @@ jobs:
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
 
-      - bash: |
-          REMOVE="refs/heads/"
-          export POLARIS_FF_ENABLE_COVERITY_INCREMENTAL=true
-          export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
-          git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only > ./change-set.txt
-          set -x
-          ./polaris-cli/polaris analyze -w --coverity-ignore-capture-failure --incremental ./change-set.txt
-        displayName: 'Coverity Static Analysis (Incremental)'
-        # Only run incremental analysis if it IS a pull request
-        condition: eq(variables['Build.Reason'], 'PullRequest')
+      #- bash: |
+      #    REMOVE="refs/heads/"
+      #    export POLARIS_FF_ENABLE_COVERITY_INCREMENTAL=true
+      #    export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
+      #    git --no-pager diff origin/$SYSTEM_PULLREQUEST_TARGETBRANCHNAME --name-only > ./change-set.txt
+      #    set -x
+      #    ./polaris-cli/polaris analyze -w --coverity-ignore-capture-failure --incremental ./change-set.txt
+      #  displayName: 'Coverity Static Analysis (Incremental)'
+      #  # Only run incremental analysis if it IS a pull request
+      #  condition: eq(variables['Build.Reason'], 'PullRequest')
 
       - bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
         displayName: Get Synopsys Azure Tools
