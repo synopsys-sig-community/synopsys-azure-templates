@@ -107,12 +107,11 @@ jobs:
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-annotate-pr.py
         displayName: Annotate pull request
-        env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         # Only annotate pull requests if... we are building for a pull request
         condition: eq(variables['Build.Reason'], 'PullRequest')
         #continueOnError: true
         env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
           POLARIS_URL: $(POLARIS_URL)
           POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
