@@ -38,6 +38,8 @@ jobs:
           curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
           unzip -j -d polaris-cli polaris.zip
           ./polaris-cli/polaris --persist-config --co capture.build.buildCommands="null" --co capture.build.cleanCommands="null" --co capture.fileSystem="null" --co capture.coverity.autoCapture="enable" --co serverUrl=$POLARIS_URL configure
+          env
+          cat polaris.yml
         displayName: Download and install Polaris CLI
         # Set up Polaris CLI if this is either a build against master, or a pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
