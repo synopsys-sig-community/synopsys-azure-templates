@@ -1,18 +1,12 @@
 parameters:
-  polaris_url: ""
-  polaris_token: ""
   security_gate_args: "--new"
-  system_accesstoken: ""
 
 jobs:
   - job: CoverityOnPolaris
 
     variables:
-      POLARIS_URL: ${{ parameters.polaris_url }}
-      POLARIS_ACCESS_TOKEN: ${{ parameters.polaris_token }}
       SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
       SECURITY_GATE_ARGS: ${{ parameters.security_gate_args }}
-      SYSTEM_ACCESSTOKEN_PARAM: ${{ parameters.system_accesstoken }}
 
     steps:
       # Linux
@@ -21,18 +15,24 @@ jobs:
           echo "##vso[task.setvariable variable=POLARIS_DOWNLOAD]$DOWNLOAD"
         condition: eq( variables['Agent.OS'], 'Linux' )
         displayName: Get Polaris Download for Linux
+        env:
+          POLARIS_URL: $(POLARIS_URL)
       # macOS
       - bash: |
           export DOWNLOAD=$POLARIS_URL/api/tools/polaris_cli-macosx.zip
           echo "##vso[task.setvariable variable=POLARIS_DOWNLOAD]$DOWNLOAD"
         condition: eq( variables['Agent.OS'], 'Darwin' )
         displayName: Get Polaris Download for macOS
+        env:
+          POLARIS_URL: $(POLARIS_URL)
       # Windows
       - powershell: |
           Set-Variable -Name DOWNLOAD -Value $POLARIS_URL/api/tools/polaris_cli-win64.zip
           echo "##vso[task.setvariable variable=POLARIS_DOWNLOAD]$DOWNLOAD"
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
         displayName: Get Polaris Download for Windows
+        env:
+          POLARIS_URL: $(POLARIS_URL)
 
       - bash: |
           curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
@@ -43,11 +43,17 @@ jobs:
         displayName: Download and install Polaris CLI
         # Set up Polaris CLI if this is either a build against master, or a pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+        env:
+          POLARIS_URL: $(POLARIS_URL)
+          POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
       - bash: ./polaris-cli/polaris analyze -w
         displayName: Coverity SAST (Full analysis)
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
+        env:
+          POLARIS_URL: $(POLARIS_URL)
+          POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
       #- bash: |
       #    REMOVE="refs/heads/"
@@ -59,6 +65,9 @@ jobs:
       #  displayName: 'Coverity Static Analysis (Incremental)'
       #  # Only run incremental analysis if it IS a pull request
       #  condition: eq(variables['Build.Reason'], 'PullRequest')
+      #  env:
+      #    POLARIS_URL: $(POLARIS_URL)
+      #    POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
       - bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
         displayName: Get Synopsys Azure Tools
@@ -84,6 +93,7 @@ jobs:
           # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
         env:
+          POLARIS_URL: $(POLARIS_URL)
           POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project $BUILD_REPOSITORY_NAME
@@ -92,20 +102,29 @@ jobs:
         displayName: Create Work Items for New Issues
         # Only create work items for pushes to a main branch
         condition: eq(variables['Build.SourceBranchName'], 'master')
+        env:
+          POLARIS_URL: $(POLARIS_URL)
+          POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
       #- script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-annotate-pr.py
       #  displayName: Annotate pull request
       #  env:
-      #    SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
+      #    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
       #  # Only annotate pull requests if... we are building for a pull request
       #  condition: eq(variables['Build.Reason'], 'PullRequest')
       #  #continueOnError: true
+      #  env:
+      #    POLARIS_URL: $(POLARIS_URL)
+      #    POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
 
       - script: $(pyTools.pythonLocation)/bin/python synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --project $BUILD_REPOSITORY_NAME $SECURITY_GATE_ARGS --exit1-if-issues
         displayName: Check Polaris Security Gate
         # TODO: Also pass access token this way
         env:
-          SYSTEM_ACCESSTOKEN: ${{ parameters.system_accesstoken }}
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         # Break the build on central results only on master
         # TODO break the build differently on pull request
         condition: eq(variables['Build.SourceBranchName'], 'master')
+        env:
+          POLARIS_URL: $(POLARIS_URL)
+          POLARIS_ACCESS_TOKEN: $(POLARIS_ACCESS_TOKEN)
