@@ -37,7 +37,7 @@ jobs:
       - bash: |
           curl -LsS -o polaris.zip $POLARIS_DOWNLOAD
           unzip -j -d polaris-cli polaris.zip
-          ./polaris-cli/polaris --persist-config --co capture.build.buildCommands="null" --co capture.build.cleanCommands="null" --co capture.fileSystem="null" --co capture.coverity.autoCapture="enable" --co serverUrl=$POLARIS_URL configure
+          ./polaris-cli/polaris --persist-config --co project.name=$BUILD_REPOSITORY_NAME --co capture.build.buildCommands="null" --co capture.build.cleanCommands="null" --co capture.fileSystem="null" --co capture.coverity.autoCapture="enable" --co serverUrl=$POLARIS_URL configure
           env
           cat polaris.yml
         displayName: Download and install Polaris CLI
