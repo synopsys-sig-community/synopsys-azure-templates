@@ -40,11 +40,15 @@ The following configuration options must be passed to the template as parameters
 
 | Parameter name | Description |
 | --- | --- |
-| polaris_token | Set this to your Polaris access token |
-| polaris_url | Set this to your individual customer Polaris URL (e.g. customer.polaris.synopsys.com) |
 | security_gate_args | The default value is "--new" which will return all newly introduced security issues. TODO: Explain options here |
 | system_accesstoken | This should be set to $(System.AccessToken) in order to pass through an Azure access token for the integration to use |
 
+The following variables should be set in your project or organization settings:
+
+| Variable name | Description |
+| --- | --- |
+| POLARIS_ACCESS_TOKEN | Set this to your Polaris access token |
+| POLARIS_URL | Set this to your individual customer Polaris URL (e.g. customer.polaris.synopsys.com) |
 
 These templates both us the Polaris command line utility to perform an "auto capture" of your source code (no need to understand how the software is built) and uploads the source code and dependencies to Polaris for analysis. They are configured with different behavior for different scenarios:
 
