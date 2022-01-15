@@ -16,7 +16,13 @@ jobs:
 
     steps:
 
-      # TODO: Check that environment variables are set!
+      # This step is helpful for troubleshooting
+      - bash: env
+        env:
+          COV_USER: $(COV_USER)
+          COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
 
       # Create project and stream if they don't exist
       - bash: |
