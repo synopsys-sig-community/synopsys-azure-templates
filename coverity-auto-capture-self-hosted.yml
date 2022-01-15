@@ -131,3 +131,4 @@ jobs:
         env:
           COV_USER: $(COV_USER)
           COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
