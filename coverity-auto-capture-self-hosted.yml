@@ -73,6 +73,7 @@ jobs:
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
           echo cov-commit-defects --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
           cov-commit-defects --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
+          cov-format-errors --dir coverity-data/idir --json-output-v8 coverity-output-v8.json
         displayName: Commit full analysis results
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.SourceBranchName'], 'master')
@@ -121,7 +122,7 @@ jobs:
           export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
           echo python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME
-          python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME
+          python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --coverity-json coverity-output-v8.json
         displayName: Create Work Items for New Issues
         # Only create work items for pushes to a main branch
         condition: eq(variables['Build.SourceBranchName'], 'master')
