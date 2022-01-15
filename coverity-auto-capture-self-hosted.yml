@@ -21,13 +21,12 @@ jobs:
       # Create project and stream if they don't exist
       - bash: |
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
-          env
           echo Ensure that stream "$COVERITY_STREAM_NAME" exists
           echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
-          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
-          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
+          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
+          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
         displayName: Create project and stream
         # Run full analysis only on builds of master, not on pull requests
@@ -58,6 +57,7 @@ jobs:
 
       # Run full analysis
       - bash: |
+          echo cov-analyze --dir ./coverity-data/idir --ticker-mode no-spin ${{ parameters.coverity_checkers }}
           cov-analyze --dir ./coverity-data/idir --ticker-mode no-spin ${{ parameters.coverity_checkers }}
         displayName: Analyze source (full)
         # Run full analysis only on builds of master, not on pull requests
@@ -84,6 +84,7 @@ jobs:
           git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only > coverity-changed-files.txt
           echo Changed files---
           cat coverity-changed-files.txt
+          echo cov-run-desktop --dir coverity-data/idir --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
           cov-run-desktop --dir coverity-data/idir --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
           cat coverity-output-v7.json
         displayName: Analyze source (incremental)
@@ -114,9 +115,13 @@ jobs:
           REMOVE="refs/heads/"
           export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
+          echo python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME
           python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Create Work Items for New Issues
         # Only create work items for pushes to a main branch
         condition: eq(variables['Build.SourceBranchName'], 'master')
+        env:
+          COV_USER: $(COV_USER)
+          COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
