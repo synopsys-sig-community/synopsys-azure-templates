@@ -103,7 +103,7 @@ jobs:
       #  displayName: Install Python Module Dependencies
       #  condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      - script: python3 synopsys-azure-tools/azure-coverity-annotate-pr.py --coverity-json coverity-output-v7.json
+      - script: python3 synopsys-azure-tools/azure-coverity-annotate-pr.py --debug 9 --coverity-json coverity-output-v7.json
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Annotate pull request
