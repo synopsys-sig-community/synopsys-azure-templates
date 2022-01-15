@@ -98,9 +98,10 @@ jobs:
         # Get automation if either master or pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      - script: pip3 install --upgrade pandas requests jsonapi_requests
-        displayName: Install Python Module Dependencies
-        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+      # XXX Comented out for running on james-mac
+      #- script: pip3 install --upgrade pandas requests jsonapi_requests
+      #  displayName: Install Python Module Dependencies
+      #  condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
       #- script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank
       #  env:
