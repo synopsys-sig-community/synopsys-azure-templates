@@ -117,12 +117,13 @@ jobs:
         # Only create work items for pushes to a main branch
         condition: eq(variables['Build.Reason'], 'PullRequest')
 
+      # Export newly found issues as Azure boards work items
       - bash: |
           REMOVE="refs/heads/"
           export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
-          echo python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --coverity-json coverity-output-v8.json
-          python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --coverity-json coverity-output-v8.json
+          echo python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --coverity-json coverity-output-v8.json --stream $COVERITY_STREAM_NAME
+          python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --coverity-json coverity-output-v8.json --stream $COVERITY_STREAM_NAME
         displayName: Create Work Items for New Issues
         # Only create work items for pushes to a main branch
         condition: eq(variables['Build.SourceBranchName'], 'master')
