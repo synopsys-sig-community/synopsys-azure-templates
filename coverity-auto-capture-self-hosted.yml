@@ -121,7 +121,7 @@ jobs:
           REMOVE="refs/heads/"
           export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
-          echo python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME
+          echo python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --coverity-json coverity-output-v8.json
           python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --coverity-json coverity-output-v8.json
         displayName: Create Work Items for New Issues
         # Only create work items for pushes to a main branch
