@@ -73,7 +73,7 @@ jobs:
       - bash: |
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
           echo cov-commit-defects --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
-          cov-commit-defects --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
+          cov-commit-defects --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin | tee coverity-data/idir/commit-log.txt
           cov-format-errors --dir coverity-data/idir --json-output-v8 coverity-output-v8.json
         displayName: Commit full analysis results
         # Run full analysis only on builds of master, not on pull requests
