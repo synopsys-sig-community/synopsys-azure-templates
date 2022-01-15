@@ -98,10 +98,17 @@ jobs:
         # Get automation if either master or pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      # XXX Comented out for running on james-mac
+      # XXX Comented out for running on james-mac, which already has everything installed
       #- script: pip3 install --upgrade pandas requests jsonapi_requests
       #  displayName: Install Python Module Dependencies
       #  condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+
+      - script: python3 synopsys-azure-tools/azure-coverity-annotate-pr.py --coverity-json coverity-output-v7.json
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        displayName: Annotate pull request
+        # Only create work items for pushes to a main branch
+        condition: eq(variables['Build.Reason'], 'PullRequest')
 
       #- script: python3 synopsys-azure-tools/azure-polaris-issues-tool.py --url $POLARIS_URL --token $POLARIS_ACCESS_TOKEN --new --az-work-items --project jcroall-insecure-bank
       #  env:
