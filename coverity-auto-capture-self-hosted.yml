@@ -22,6 +22,7 @@ jobs:
           COV_USER: $(COV_USER)
           COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        displayName: Diagnostics
 
       # Create project and stream if they don't exist
       - bash: |
