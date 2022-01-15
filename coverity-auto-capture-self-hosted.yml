@@ -84,7 +84,7 @@ jobs:
           git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only > coverity-changed-files.txt
           echo Changed files---
           cat coverity-changed-files.txt
-          cov-run-desktop --dir coverity-data/idir --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security coverity-changed-files.txt
+          cov-run-desktop --dir coverity-data/idir --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
           cat coverity-output-v7.json
         displayName: Analyze source (incremental)
         # Run full analysis only on builds of master, not on pull requests
