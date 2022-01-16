@@ -28,6 +28,8 @@ jobs:
       - bash: |
           echo $COVERITY_LICENSE > coverity-license.dat
         displayName: Initialize License
+        env:
+          COVERITY_LICENSE: $(COVERITY_LICENSE)
 
       # Create project and stream if they don't exist
       - bash: |
