@@ -192,8 +192,8 @@ Suggestions for future enhancements include:
 # Docker Images
 
 Docker recipes are provided primarily for the usage of Synopsys field engineers testing and developing these
-templates and scripts. It is expected that commercial users will already have methids in place to manage self-hosted
-build agents.
+templates and scripts. These may also provide an example for customers looking to create their own purpose-built
+self-hosted build agents.
 
 ## coverity-azure-self-hosted-agent
 
