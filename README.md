@@ -40,6 +40,18 @@ These templates and scripts are provided under an OSS license (specified in the 
 
 ## Getting Started
 
+These templates are intended as a working reference implementation of an Coverity / Coverity on Polaris
+deployment, including python scripts that help to fulfill a number of key integration use cases.
+
+The templates may be copied directly to your project, reviewed and potentially edited, or they may be
+copied to a central location and then referenced by your pipeline jobs with minimal changes to the
+project pipelines directly. This is the preferred mode of usage, as the templates are intended to be
+generalized (or, generalizable for your environment) and jsut "drop in" to many situations.
+
+It is not recommended that you invoke the templates from the Synopsys repository directly, as this
+could introduce sudden breaking changes into your environment, even with the most careful considerations
+not to introduce such changes.
+
 To use these templates you must first configure access to them. In the following example we show how to configure direct access to this github repo, but it is recommended that you clone this repo and use your own.
 
 A reference like the following must be made in your pipeline:
@@ -119,6 +131,15 @@ Where reasonable, the templates are implemented in a way that the full command l
 
 If an unexpected error occurs, verbose debugging can be enabled by adding "--debug 9" to any Python script invocation. Please contact the maintainer with this information to work on troubleshooting.
 
+## "Cannot contribute to pull request"
+
+For a variety of reasons, Azure DevOps projects may be created with different default settings. 
+One relatively common scenario is that the Azure user who owns the build process may not have the
+necessary permissions to contribute to a pull request, which will inhibit the ability to leave a
+comment on the pull request.
+
+[A support ticket with Microsoft describes this behavior](https://github.com/microsoft/azure-devops-node-api/issues/300) and how to resolve it.
+
 # Support
 
 For questions and comments, please contact us via the [Polaris Integrations Forum](https://community.synopsys.com/s/topic/0TO2H000000gM3oWAE/polaris-integrations).
@@ -133,3 +154,71 @@ These templates have been tested in a limited varity of configurations:
 Everything has been tested against the latest release of Synopsys products:
 * Coverity 2021.12
 * Polaris 2021.12
+
+# Future Enhancements
+
+Suggestions for future enhancements include:
+
+* Resolve (close) pull request comment if subsequent Coverity analysis run determines that the issue has been fixed - this will help developers verify their fixes before merge
+* Allow filtering criteria for work item creation - this will allow work items to only be created for issues that match a policy for the given application (this could be implemented in the same way as break the build policies, using a saved view in Coverity Connect)
+* Add options that get passed in to the YAML template enabling or disabling different integration points - this would allow for a more one size fits all template that requires less customization through code edits
+
+# Docker Images
+
+Docker recipes are provided primarily for the usage of Synopsys field engineers testing and developing these
+templates and scripts. It is expected that commercial users will already have methids in place to manage self-hosted
+build agents.
+
+## coverity-azure-self-hosted-agent
+
+This container will establish an Ubuntu-18 LTS instance with:
+* Coverity (latest version)
+* Azure DevOps Build Agent
+
+And includes startup scripts to easily connect it to your project or agent pool.
+
+To build the container:
+```
+docker build -t coverity-azure-self-hosted-agent .
+```
+
+To run the container:
+```
+docker rm coverity-azure-self-hosted-agent
+docker run \
+  -e AZP_URL=[Base URL of your Azure DevOps site] \
+  -e AZP_POOL=[Optional - the name of your agent pool] \
+  -e AZP_TOKEN=[API Token] \
+  -e AZP_AGENT_NAME=[Name of the agent to register] \
+  coverity-azure-self-hosted-agent
+```
+
+## coverity-on-polaris-azure-self-hosted-agent/
+
+This container will establish an Ubuntu-18 LTS instance with:
+* Polaris CLI (latest version)
+* Azure DevOps Build Agent
+
+And includes startup scripts to easily connect it to your project or agent pool.
+
+Upon the first invocation of the container, it will bootstrap the local analysis kit by attempting a local
+analysis. This adds overhead to the initial startup, but subsequent incremental analysis runs will already have
+the local analysis kit.
+
+To build the container:
+```
+docker build -t coverity-azure-self-hosted-agent .
+```
+
+To run the container:
+```
+docker rm coverity-on-polaris-azure-self-hosted-agent
+docker run \
+  -e AZP_URL=[Base URL of your Azure DevOps site] \
+  -e AZP_POOL=[Optional - the name of your agent pool] \
+  -e AZP_TOKEN=[Optional - the name of your agent pool] \
+  -e AZP_AGENT_NAME=[Name of the agent to register] \
+  -e POLARIS_URL=[Your Polaris URL] \
+  -e POLARIS_ACCESS_TOKEN=[Your Polaris Access Token] \
+  coverity-on-polaris-agent
+```
