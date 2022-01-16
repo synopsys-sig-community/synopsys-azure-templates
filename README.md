@@ -164,6 +164,12 @@ One relatively common scenario is that the Azure user who owns the build process
 necessary permissions to contribute to a pull request, which will inhibit the ability to leave a
 comment on the pull request.
 
+## Unable to create streams or projects in Coverity Connect
+
+By default, user accounts in Coverity Connect do not have permission to create streams and projects. But this is
+needed in order to on-board projects that have never been seen before! It is recommended that you use a service
+account for this pipeline, and set this service account to have permission to manage streams and projects.
+
 [A support ticket with Microsoft describes this behavior](https://github.com/microsoft/azure-devops-node-api/issues/300) and how to resolve it.
 
 # Support
