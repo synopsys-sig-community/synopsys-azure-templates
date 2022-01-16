@@ -113,7 +113,7 @@ jobs:
         # Get automation if either master or pull request
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      - script: pip3 install --upgrade pandas requests jsonapi_requests suds azure-devops
+      - script: pip3 install --upgrade pandas requests jsonapi_requests suds azure azure-devops
         displayName: Install Python Module Dependencies
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 

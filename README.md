@@ -24,7 +24,7 @@ These templates and scripts are provided under an OSS license (specified in the 
 - coverity-on-polaris-self-hosted.yml - Template for Coverity on Polaris when using a self-hosted build agent
 - coverity-auto-capture-self-hosted.yml - Template for Coverity Connect when using a self-hosted build agent (this is not recommended using a Microsoft-hosted build agent)
 
-** From https://github.com/synopsys-sig-community/synopsys-azure-tools:**
+**From https://github.com/synopsys-sig-community/synopsys-azure-tools:**
 
 - README.md - Documentation for the supporting scripts
 - azure-coverity-annotate-pr.py - Python script for annotating an Azure Pull Request with Coverity results
@@ -98,13 +98,41 @@ The following variables should be set in your project or organization settings:
 
 These templates both us the Polaris command line utility to perform an "auto capture" of your source code (no need to understand how the software is built) and uploads the source code and dependencies to Polaris for analysis. They are configured with different behavior for different scenarios:
 
-#### Build for master branch
+### Coverity (with Coverity Connect)
+
+Run a Coverity SAST scan, using Coverity Connect, as part of your pipeline. There are is one instance of this recipe:
+
+- coverity-auto-capture-self-hosted.yml - Runs Coverity using "auto capture" on a self-hosted aegent. **This is the recommended option for regular Coverity, as the size of the installer is presently (as of 2021.12) too large for an ephemeral build agent**
+
+If you have a project requiring a different capture process, for example a C/C++ project using cov-build, you can
+copy this template and modify the cov-capture call as appropriate to your environment and project.
+
+- coverity-on-polaris-self-hosted.yml - Runs Coverity on a self-hosted agent. **This is the recommended option if you  plan to use incremental analysis, as the tools (a large, 2GB download) can be stored locally and not re-downloaded for every job.**
+
+The following configuration options must be passed to the template as parameters:
+
+| Parameter name | Description |
+| --- | --- |
+| coverity_checkers | Checker options to be passed to cov-analyze, for example --webapp-security |
+
+The following variables should be set in your project or organization settings:
+
+| Variable name | Description |
+| --- | --- |
+| COVERITY_URL | Set this to your Coverity Connect URL |
+| COVERITY_LICENSE | Copy the XML contents of your license.dat for analysis here |
+| COV_USER | Username to log in to Coverity Connect |
+| COVERITY_PASSPHRASE | Passphrase for the user |
+
+
+## Workflows
+### Build for master branch
 
 When performing a build for the master branch, a full Coverity analysis will be run and Azure Boards work items will be created for newly found issues. These work items contain all the information a developer needs to understand and fix the issue, including source code snippets and remediation guidance. If new issues are found matching the "security gate" parameter, an exit code will be returned to indicate the pipeline has failed.
 
 ![alt text](artifacts/boards-work-item-example.png)
 
-#### Build for a pull request
+### Build for a pull request
 
 When performing a build to validate a pull request, an incremental analysis will be run on only the changed files, and the pull request will be annotated with comments to direct the developer to issues that may prevent a merge. Additionally, if new issues are found an exit code will eb returned to indicate the pipeline has failed.
 
