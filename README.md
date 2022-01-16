@@ -107,8 +107,6 @@ Run a Coverity SAST scan, using Coverity Connect, as part of your pipeline. Ther
 If you have a project requiring a different capture process, for example a C/C++ project using cov-build, you can
 copy this template and modify the cov-capture call as appropriate to your environment and project.
 
-- coverity-on-polaris-self-hosted.yml - Runs Coverity on a self-hosted agent. **This is the recommended option if you  plan to use incremental analysis, as the tools (a large, 2GB download) can be stored locally and not re-downloaded for every job.**
-
 The following configuration options must be passed to the template as parameters:
 
 | Parameter name | Description |
