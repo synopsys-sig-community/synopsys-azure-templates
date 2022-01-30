@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --upgrade pip && pip3 install requests==2.26.0 urllib3==1.26.7 jsonapi-requests==0.6.2 tenacity==6.2.0 pygithub suds azure-devops
+RUN pip3 install --upgrade pip && pip3 install setuptools requests==2.26.0 urllib3==1.26.7 jsonapi-requests==0.6.2 tenacity==6.2.0 pygithub suds azure-devops
 
 RUN curl -LsS https://aka.ms/InstallAzureCLIDeb | bash \
   && rm -rf /var/lib/apt/lists/*
