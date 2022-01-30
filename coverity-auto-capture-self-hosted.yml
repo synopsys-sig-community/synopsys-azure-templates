@@ -125,6 +125,8 @@ jobs:
           python3 synopsys-azure-tools/azure-coverity-annotate-pr.py --debug 9 --coverity-json coverity-output-v7.json --url ${COVERITY_URL} --stream ${COVERITY_STREAM_NAME}
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          COV_USER: $(COV_USER)
+          COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
         displayName: Annotate pull request
         # Only create work items for pushes to a main branch
         condition: eq(variables['Build.Reason'], 'PullRequest')
