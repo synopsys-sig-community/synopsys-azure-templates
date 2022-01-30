@@ -117,7 +117,12 @@ jobs:
         displayName: Install Python Module Dependencies
         condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
-      - script: python3 synopsys-azure-tools/azure-coverity-annotate-pr.py --debug 9 --coverity-json coverity-output-v7.json
+      - bash: |
+          REMOVE="refs/heads/"
+          export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
+          export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
+          echo python3 synopsys-azure-tools/azure-coverity-annotate-pr.py --debug 9 --coverity-json coverity-output-v7.json --url ${COVERITY_URL} --stream ${COVERITY_STREAM_NAME}
+          python3 synopsys-azure-tools/azure-coverity-annotate-pr.py --debug 9 --coverity-json coverity-output-v7.json --url ${COVERITY_URL} --stream ${COVERITY_STREAM_NAME}
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Annotate pull request
