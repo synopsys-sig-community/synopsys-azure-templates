@@ -237,7 +237,6 @@ Everything has been tested against the latest release of Synopsys products:
 Suggestions for future enhancements include:
 
 * Remove the need for the deprecated jsonapi_requests and use requests directly
-* Resolve (close) pull request comment if subsequent Coverity analysis run determines that the issue has been fixed - this will help developers verify their fixes before merge
 * Allow filtering criteria for work item creation - this will allow work items to only be created for issues that match a policy for the given application (this could be implemented in the same way as break the build policies, using a saved view in Coverity Connect)
 * Add options that get passed in to the YAML template enabling or disabling different integration points - this would allow for a more one size fits all template that requires less customization through code edits
 
