@@ -32,6 +32,7 @@ These templates and scripts are provided under an OSS license (specified in the 
 - azure-polaris-annotate-pr.py - Python script for annotating an Azure Pull Request with Coverity for Polaris results
 - azure-polaris-issues-tool.py - Python script for exporting Coverity on Polaris results as Azure Boards work items
 - git-assign-issues.py - Python script for assigning Coverity on Poalris issues to the developer who most likely introduced the issue
+- azure-enable-synopsys-in-pipeline.py - Python script for on-boarding Synopsys into a pipeline by modifying azure-pipelines.yml
 - globals.py - Support for the above scripts
 - polaris.py - Support for the above scripts
 - wscoverity.py - Support for the above scripts
@@ -171,6 +172,50 @@ comment on the pull request.
 By default, user accounts in Coverity Connect do not have permission to create streams and projects. But this is
 needed in order to on-board projects that have never been seen before! It is recommended that you use a service
 account for this pipeline, and set this service account to have permission to manage streams and projects.
+
+# On-Boarding Projects into Coverity or Polaris
+
+Also provided is a script that can automate on-boarding of projects into Coverity or Polaris. The workflow has three steps:
+
+1. Set up the templates and scripts in your own repository (See the Configuration section)
+2. Create template files that will be used to modify your projects' azure-pipelines.yml
+3. For each project you wish to on-board, run the azure-enable-synopsys-in-pipeline.py script. This will create a new branch in the project's repo, apply the templates to the azure-pipeline.yml file, and submit a pull request that can be reviewed and accepted. It is suggested that if your PR policy doesn't automatically test the changes, that you test them at this point to ensure operation before accepting the change.
+
+To run the script:
+
+```
+azure-enable-synopsys-in-pipeline.py \
+  --template-pre <template file to prepend> \
+  --template <tenmplate file to append> \
+  --azure-url <Azure DevOps Base URL> \
+  --project <Project Name> \
+  --repo <Repo Name> \
+  --from-ref <Base Reference>  \
+  --to-branch <Marge Target>
+```
+
+For example:
+
+```
+azure-enable-synopsys-in-pipeline.py \
+  --template-pre synopsys-azure-template-pre.yml \
+  --template synopsys-azure-template-post.yml \
+  --azure-url https://dev.azure.com/sig-pm-demo \
+  --project insecure-bank \
+  --repo insecure-bank \
+  --from-ref 32cc00f040faeaaa46824c1484677f1a45909b78 \
+  --to-branch master
+```
+
+| Parameter name | Description |
+| --- | --- |
+| template_pre | Template configuration as code that will be PRE-pended to the azure-pipelines.yml file |
+| template_post | Template configuration as code that will be POST-pended to the azure-pipelines.yml file |
+| azure-url | Your Azure DevOps Base URL, e.g. https://dev.azure.com/sig-pm-demo |
+| project | Project name used to identify your project to on-board |
+| repo | Repo name, must be specified in case the Project has multiple repos |
+| from-ref | Git base reference, where to begin the branchg from |
+| to-branch | Pull request merge target |
 
 # Support
 
