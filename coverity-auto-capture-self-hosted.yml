@@ -47,8 +47,8 @@ jobs:
   - job: Coverity
 
     variables:
-      COVERITY_PROJECT_NAME: ${{ parameters['coverity_project_name'] }}
-      COVERITY_STREAM_NAME: ${{ parameters['coverity_stream_name'] }}
+      COVERITY_PROJECT_NAME: ${{ parameters.coverity_project_name }}
+      COVERITY_STREAM_NAME: ${{ parameters.coverity_stream_name }}
 
     steps:
       # This step is helpful for troubleshooting
@@ -66,7 +66,7 @@ jobs:
           echo "##vso[task.setvariable variable=COVERITY_STREAM_NAME;]$COVERITY_STREAM_NAME"
         displayName: Set Coverity stream name
         # Run full analysis only on builds of master, not on pull requests
-        condition: eq(parameters['coverity_stream_name'], '')
+        condition: eq(parameters.coverity_stream_name, '')
 
       # Set default project name
       - bash: |
@@ -75,7 +75,7 @@ jobs:
           echo "##vso[task.setvariable variable=COVERITY_PROJECT_NAME;]$COVERITY_PROJECT_NAME"
         displayName: Set Coverity project name
         # Run full analysis only on builds of master, not on pull requests
-        condition: eq(parameters['coverity_project_name'], '')
+        condition: eq(parameters.coverity_project_name, '')
 
       # Create project and stream if they don't exist
       - bash: |
