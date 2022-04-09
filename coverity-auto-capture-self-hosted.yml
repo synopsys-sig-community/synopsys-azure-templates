@@ -59,7 +59,7 @@ jobs:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Diagnostics
 
-      # Set default project name
+      # Set default stream name
       - bash: |
           set -x
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
@@ -181,10 +181,14 @@ jobs:
           COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
           COVERITY_STREAM_NAME_PARAM: '${{ parameters.coverity_stream_name }}'
 
-      #- task: SynopsysCoverityTask@0
-      #  inputs:
-      #    CoverityResultsFile: 'coverity-results.json'
-      #  displayName: Synopsys Sigma
-      #  continueOnError: true
-      #  env:
-      #    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      - task: SynopsysCoverityTask@0
+        inputs:
+          CoverityResultsFile: 'coverity-results.json'
+          CoverityUrl: '${{ parameters.coverity_url }}'
+          CoverityUsername: '${{ parameters.coverity_username }}'
+          CoverityPassphrase: '${{ parameters.coverity_passphrase }}'
+          CoverityProjectName: '${{ parameters.coverity_project_name }}'
+        displayName: Coverity Pull Request Feedback
+        continueOnError: true
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
