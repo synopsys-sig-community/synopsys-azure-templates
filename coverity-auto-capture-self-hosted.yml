@@ -82,7 +82,7 @@ jobs:
           set -x
           echo Ensure that project "$COVERITY_PROJECT_NAME" exists
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add \
-            --set name:"$COVERITY_STREAM_NAME" || true
+            --set name:"$COVERITY_PROJECT_NAME" || true
           echo Ensure that stream "$COVERITY_STREAM_NAME" exists
           cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add \
             -set name:"$COVERITY_STREAM_NAME" || true
