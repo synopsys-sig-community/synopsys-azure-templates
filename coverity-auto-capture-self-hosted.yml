@@ -102,16 +102,16 @@ jobs:
           cov-build --dir idir $BUILD_COMMAND
         displayName: Capture source code
         # Run full analysis only on builds of master, not on pull requests
-        condition: ne(parameters['coverity_build_command'], '')
+        condition: ne('${{ parameters.coverity_build_command }}', '')
         env:
-          BUILD_COMMAND: ${{ parameters.coverity_build_command }}
+          BUILD_COMMAND: '${{ parameters.coverity_build_command }}'
 
       # Automatic capture if build command not specified
       - bash: |
           cov-capture --project-dir . --dir idir
         displayName: Capture source code
         # Run full analysis only on builds of master, not on pull requests
-        condition: eq(parameters['coverity_build_command'], '')
+        condition: eq('${{ parameters.coverity_build_command }}', '')
 
       # Run full analysis
       - bash: |
