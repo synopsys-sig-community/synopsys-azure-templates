@@ -9,6 +9,9 @@ parameters:
 jobs:
   - job: Coverity
 
+    variables:
+      BUILD_COMMAND_TEST: '${{ variables.BUILD_COMMAND }}'
+
     steps:
       # This step is helpful for troubleshooting
       - bash: env
@@ -45,7 +48,7 @@ jobs:
           cov-build --dir idir $BUILD_COMMAND
         displayName: Capture source code
         # Run full analysis only on builds of master, not on pull requests
-        condition: ne(variables['BUILD_COMMAND'], Null)
+        condition: ne(variables['BUILD_COMMAND_TEST'], '')
 
       # Automatic capture if build command not specified
       - bash: |
