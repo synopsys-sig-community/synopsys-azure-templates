@@ -187,7 +187,7 @@ jobs:
           CoverityUrl: '${{ parameters.coverity_url }}'
           CoverityUsername: '${{ parameters.coverity_username }}'
           CoverityPassphrase: '${{ parameters.coverity_passphrase }}'
-          CoverityProjectName: '${{ parameters.coverity_project_name }}'
+          CoverityProjectName: '${{ variables.COVERITY_PROJECT_NAME }}'
         displayName: Coverity Pull Request Feedback
         continueOnError: true
         env:
