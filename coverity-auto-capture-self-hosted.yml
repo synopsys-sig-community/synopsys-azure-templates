@@ -135,7 +135,7 @@ jobs:
             --ticker-mode no-spin \
             | tee idir/commit-log.txt
           cov-format-errors --dir idir \
-            --json-output coverity-results.json
+            --json-output-v7 coverity-results.json
         displayName: Commit full analysis results
         # Run full analysis only on builds of master, not on pull requests
         condition: ${{ containsValue(parameters.main_branches, variables['Build.SourceBranch']) }}
