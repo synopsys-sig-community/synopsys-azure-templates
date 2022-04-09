@@ -176,10 +176,10 @@ jobs:
           COV_USER: $(COV_USER)
           COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
 
-      - task: SynopsysCoverityTask@0
-        inputs:
-          CoverityResultsFile: 'coverity-results.json'
-        displayName: Synopsys Sigma
-        continueOnError: true
-        env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      #- task: SynopsysCoverityTask@0
+      #  inputs:
+      #    CoverityResultsFile: 'coverity-results.json'
+      #  displayName: Synopsys Sigma
+      #  continueOnError: true
+      #  env:
+      #    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
