@@ -98,7 +98,7 @@ jobs:
           git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only > coverity-changed-files.txt
           cat coverity-changed-files.txt
           cov-run-desktop --security-file coverity-license.dat --dir coverity-data/idir --strip-path `pwd` --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
-          grep -q "does not exist or you do not have permission" idir/output/cov-run-desktop-log.txt
+          grep -q "does not exist or you do not have permission" coverity-data/idir/output/cov-run-desktop-log.txt
           if [ $? -eq 0 ]; then
             echo Incremental analysis failed due to no baseline in $COVERITY_STREAM_NAME
             export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
