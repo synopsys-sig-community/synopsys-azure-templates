@@ -45,7 +45,7 @@ jobs:
           cov-build --dir idir $BUILD_COMMAND
         displayName: Capture source code
         # Run full analysis only on builds of master, not on pull requests
-        condition: ne(variables['BUILD_COMMAND'], '')
+        condition: ne(variables['BUILD_COMMAND'], Null)
 
       # Automatic capture if build command not specified
       - bash: |
