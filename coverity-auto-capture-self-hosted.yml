@@ -91,17 +91,21 @@ jobs:
 
       # Run incremental analysis
       - bash: |
+          set -x
           REMOVE="refs/heads/"
           export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
           export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
-          echo git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only
           git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only > coverity-changed-files.txt
-          echo Changed files---
           cat coverity-changed-files.txt
-          echo cov-run-desktop --security-file coverity-license.dat --dir coverity-data/idir --strip-path `pwd` --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
           cov-run-desktop --security-file coverity-license.dat --dir coverity-data/idir --strip-path `pwd` --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
-          cat coverity-data/idir/output/cov-run-desktop-log.txt
-          cat coverity-output-v7.json
+          grep -q "does not exist or you do not have permission" idir/output/cov-run-desktop-log.txt
+          if [ $? -eq 0 ]; then
+            echo Incremental analysis failed due to no baseline in $COVERITY_STREAM_NAME
+            export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
+            echo Running full analysis with COVERITY_STREAM=$COVERITY_STREAM_NAME
+            cov-analyze --dir ./coverity-data/idir --security-file coverity-license.dat --ticker-mode no-spin ${{ parameters.coverity_checkers }} --strip-path `pwd`
+            cov-format-errors --security-file coverity-license.dat --dir coverity-data/idir --json-output-v7 coverity-output-v7.json
+          fi
         displayName: Analyze source (incremental)
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.Reason'], 'PullRequest')
