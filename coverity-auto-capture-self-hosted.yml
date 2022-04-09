@@ -100,6 +100,7 @@ jobs:
           cat coverity-changed-files.txt
           echo cov-run-desktop --security-file coverity-license.dat --dir coverity-data/idir --strip-path `pwd` --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
           cov-run-desktop --security-file coverity-license.dat --dir coverity-data/idir --strip-path `pwd` --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
+          cat coverity-data/idir/output/cov-run-desktop-log.txt
           cat coverity-output-v7.json
         displayName: Analyze source (incremental)
         # Run full analysis only on builds of master, not on pull requests
