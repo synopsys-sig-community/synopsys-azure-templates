@@ -149,7 +149,11 @@ jobs:
           set -x
           REMOVE="refs/heads/"
           export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
-          export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
+          if [ "$COVERITY_STREAM_NAME_PARAM" == "" ]; then
+            export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
+          else
+            export COVERITY_STREAM_NAME=${COVERITY_STREAM_NAME_PARAM}
+          fi
           git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only > coverity-changed-files.txt
           cat coverity-changed-files.txt
           cov-run-desktop --dir idir \
@@ -175,6 +179,7 @@ jobs:
         env:
           COV_USER: $(COV_USER)
           COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
+          COVERITY_STREAM_NAME_PARAM: '${{ parameters.coverity_stream_name }}'
 
       #- task: SynopsysCoverityTask@0
       #  inputs:
