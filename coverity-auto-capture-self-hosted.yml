@@ -193,7 +193,7 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
-  - job: Security Gate
+  - job: SecurityGate
     pool: server
 
     variables:
