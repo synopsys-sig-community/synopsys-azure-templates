@@ -194,7 +194,7 @@ jobs:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
       - bash: |
-          - echo "##vso[task.setvariable variable=security_gate_status;isOutput=true;]failure"
+          echo "##vso[task.setvariable variable=security_gate_status;isOutput=true;]failure"
         displayName: Set security gate status
 
   - job: SecurityGate
