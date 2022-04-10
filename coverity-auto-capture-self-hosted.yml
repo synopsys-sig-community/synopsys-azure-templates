@@ -192,3 +192,9 @@ jobs:
         continueOnError: true
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+      - task: synopsys-coverity-security-gate@0
+        inputs:
+          serviceConnection: 'local-coverity'
+          CoverityProjectName: '${{ variables.COVERITY_PROJECT_NAME }}'
+          CoveritySavedViewName: 'OWASP Web Top 10'
