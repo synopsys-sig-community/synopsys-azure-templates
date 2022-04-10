@@ -205,7 +205,7 @@ jobs:
     variables:
       COVERITY_PROJECT_NAME: '${{ parameters.coverity_project_name }}'
       COVERITY_STREAM_NAME: '${{ parameters.coverity_stream_name }}'
-      security_gate_status: $[ dependencies.Coverity.outputs['setVariable.security_gate_status'] ]
+      security_gate_status: ${{ dependencies.Coverity.outputs['setVariable.security_gate_status'] }}
 
     steps:
       - task: synopsys-coverity-security-gate@0
