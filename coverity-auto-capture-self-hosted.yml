@@ -193,6 +193,10 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
+      - bash: |
+          - echo "##vso[task.setvariable variable=security_gate_status;isOutput=true;]failure"
+        displayName: Set security gate status
+
   - job: SecurityGate
     pool: server
     dependsOn:
@@ -201,10 +205,9 @@ jobs:
     variables:
       COVERITY_PROJECT_NAME: '${{ parameters.coverity_project_name }}'
       COVERITY_STREAM_NAME: '${{ parameters.coverity_stream_name }}'
+      security_gate_status: $[ dependencies.Coverity.outputs['setVariable.security_gate_status'] ]
 
     steps:
       - task: synopsys-coverity-security-gate@0
         inputs:
-          serviceConnection: 'local-coverity'
-          CoverityProjectName: '${{ variables.COVERITY_PROJECT_NAME }}'
-          CoveritySavedViewName: 'OWASP Web Top 10'
+          security_gate_status: '${{ variables.security_gate_status }}'
