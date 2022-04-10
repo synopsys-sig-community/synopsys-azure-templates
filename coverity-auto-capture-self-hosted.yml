@@ -211,4 +211,4 @@ jobs:
       - task: synopsys-coverity-security-gate@0
         inputs:
           security_gate_status: '${{ variables.security_gate_status }}'
-          successCriteria: eq(variables.security_gate_status, "success")
+          successCriteria: eq(variables.security_gate_status, 'success'')
