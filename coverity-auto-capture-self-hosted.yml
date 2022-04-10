@@ -193,6 +193,14 @@ jobs:
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
+  - job: Security Gate
+    pool: server
+
+    variables:
+      COVERITY_PROJECT_NAME: '${{ parameters.coverity_project_name }}'
+      COVERITY_STREAM_NAME: '${{ parameters.coverity_stream_name }}'
+
+    steps:
       - task: synopsys-coverity-security-gate@0
         inputs:
           serviceConnection: 'local-coverity'
