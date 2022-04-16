@@ -1,56 +1,21 @@
 parameters:
-  - name: coverity_url
-    displayName: Coverity URL
-    type: string
-    default: ""
-  - name: coverity_username
-    displayName: Coverity Username
-    type: string
-    default: ""
-  - name: coverity_passphrase
-    displayName: Coverity Passphrase
-    type: string
-    default: ""
-  - name: coverity_checkers
-    displayName: Coverity Checker Options
-    type: string
-    default: ""
-  - name: coverity_build_command
-    displayName: Coverity Build Command
-    type: string
-    default: ""
-  - name: coverity_project_name
-    displayName: Coverity Project Name
-    type: string
-    default: ""
-  - name: coverity_stream_name
-    displayName: Coverity Stream Name
-    type: string
-    default: ""
-  - name: main_branches
-    displayName: Main branches to run Coverity on
-    type: object
-    default:
-      - refs/heads/main
-      - refs/heads/master
-      - refs/heads/test
-  - name: security_gate_view_name
-    displayName: Coverity Saved View for Security Gate
-    type: string
-    default: ""
-  - name: create_project_and_stream
-    displayName: Create project and stream in Coverity Connect
-    type: boolean
-    default: true
+  coverity_url: ""
+  coverity_username: ""
+  coverity_passphrase: ""
+  coverity_checkers: "--webapp-security"
+  security_gate_view: ""
+  system_accesstoken: ""
 
 jobs:
   - job: Coverity
 
     variables:
-      COVERITY_PROJECT_NAME: '${{ parameters.coverity_project_name }}'
-      COVERITY_STREAM_NAME: '${{ parameters.coverity_stream_name }}'
+      SYSTEM_ACCESSTOKEN_PARAM: ${{ parameters.system_accesstoken }}
+      COVERITY_CONFIG: ./coverity-data/coverity_config.xml
+      SYNOPSYS_AZURE_TOOLS_REPO: https://github.com/synopsys-sig-community/synopsys-azure-tools
 
     steps:
+
       # This step is helpful for troubleshooting
       - bash: env
         env:
@@ -59,157 +24,123 @@ jobs:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
         displayName: Diagnostics
 
-      # Set default stream name
+      # Initialize liense
       - bash: |
-          set -x
-          export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
-          echo "##vso[task.setvariable variable=COVERITY_STREAM_NAME;]$COVERITY_STREAM_NAME"
-        displayName: Set Coverity stream name
-        # Run full analysis only on builds of master, not on pull requests
-        condition: eq('${{ parameters.coverity_stream_name }}', '')
-
-      # Set default project name
-      - bash: |
-          set -x
-          export COVERITY_PROJECT_NAME=${BUILD_REPOSITORY_NAME}
-          echo "##vso[task.setvariable variable=COVERITY_PROJECT_NAME;]$COVERITY_PROJECT_NAME"
-        displayName: Set Coverity project name
-        # Run full analysis only on builds of master, not on pull requests
-        condition: eq('${{ parameters.coverity_project_name }}', '')
+          echo $COVERITY_LICENSE > coverity-license.dat
+        displayName: Initialize License
+        env:
+          COVERITY_LICENSE: $(COVERITY_LICENSE)
 
       # Create project and stream if they don't exist
       - bash: |
-          set -x
-          echo Ensure that project "$COVERITY_PROJECT_NAME" exists
-          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add \
-            --set name:"$COVERITY_PROJECT_NAME" || true
+          export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
           echo Ensure that stream "$COVERITY_STREAM_NAME" exists
-          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add \
-            -set name:"$COVERITY_STREAM_NAME" || true
-          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects \
-            --update --name "$COVERITY_PROJECT_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
+          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
+          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --add --set name:"$COVERITY_STREAM_NAME" || true
+          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
+          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode streams --add -set name:"$COVERITY_STREAM_NAME" || true
+          echo cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
+          cov-manage-im --url $COVERITY_URL --on-new-cert trust --mode projects --update --name "$COVERITY_STREAM_NAME" --insert stream:"$COVERITY_STREAM_NAME" || true
         displayName: Create project and stream
-        # Run full analysis only on builds of main branches
-        condition: ${{ and(containsValue(parameters.main_branches, variables['Build.SourceBranch']), parameters.create_project_and_stream) }}
+        # Run full analysis only on builds of master, not on pull requests
+        condition: eq(variables['Build.SourceBranchName'], 'master')
         env:
           COV_USER: $(COV_USER)
           COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
-          COVERITY_PROJECT_NAME: $(COVERITY_PROJECT_NAME)
-          COVERITY_STREAM_NAME: $(COVERITY_STREAM_NAME)
 
-      # Build capture if specified
+      # Auto-capture source code - all of it, for full analysis
       - bash: |
-          cov-build --dir idir $BUILD_COMMAND
-        displayName: Capture source code
+          cov-capture --project-dir . --dir ./coverity-data/idir
+        displayName: Capture source code (Full)
         # Run full analysis only on builds of master, not on pull requests
-        condition: ne('${{ parameters.coverity_build_command }}', '')
-        env:
-          BUILD_COMMAND: '${{ parameters.coverity_build_command }}'
+        condition: eq(variables['Build.SourceBranchName'], 'master')
 
-      # Automatic capture if build command not specified
+      # Auto-capture source code - just changed files, for incremental analysis
       - bash: |
-          cov-capture --project-dir . --dir idir
-        displayName: Capture source code
-        # Run full analysis only on builds of master, not on pull requests
-        condition: eq('${{ parameters.coverity_build_command }}', '')
+          REMOVE="refs/heads/"
+          echo export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
+          echo git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only
+          export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
+          git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only > ./coverity-changed-files.txt
+          set -x
+          cov-capture --dir ./coverity-data/idir --source-list coverity-changed-files.txt
+        displayName: Capture source code (Incremental)
+        # Only annotate pull requests if... we are building for a pull request
+        condition: eq(variables['Build.Reason'], 'PullRequest')
 
       # Run full analysis
       - bash: |
-          set -x
-          cov-analyze --dir idir \
-            --ticker-mode no-spin \
-            --strip-path `pwd` \
-            ${{ parameters.coverity_checkers }}
+          echo cov-analyze --dir ./coverity-data/idir --security-file coverity-license.dat --ticker-mode no-spin ${{ parameters.coverity_checkers }} --strip-path `pwd`
+          cov-analyze --dir ./coverity-data/idir --security-file coverity-license.dat --ticker-mode no-spin ${{ parameters.coverity_checkers }} --strip-path `pwd`
         displayName: Analyze source (full)
         # Run full analysis only on builds of master, not on pull requests
-        condition: ${{ containsValue(parameters.main_branches, variables['Build.SourceBranch']) }}
+        condition: eq(variables['Build.SourceBranchName'], 'master')
 
       # Commit full analysis
       - bash: |
-          set -x
-          cov-commit-defects \
-            --url ${COVERITY_URL} \
-            --stream $COVERITY_STREAM_NAME \
-            --dir idir \
-            --on-new-cert trust \
-            --ticker-mode no-spin \
-            | tee idir/commit-log.txt
-          cov-format-errors --dir idir \
-            --json-output-v7 coverity-results.json
+          export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
+          echo cov-commit-defects --security-file coverity-license.dat --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin
+          cov-commit-defects --security-file coverity-license.dat --url ${COVERITY_URL} --stream $COVERITY_STREAM_NAME --dir coverity-data/idir --on-new-cert trust --ticker-mode no-spin | tee coverity-data/idir/commit-log.txt
+          cov-format-errors --security-file coverity-license.dat --dir coverity-data/idir --json-output-v8 coverity-output-v8.json
         displayName: Commit full analysis results
         # Run full analysis only on builds of master, not on pull requests
-        condition: ${{ containsValue(parameters.main_branches, variables['Build.SourceBranch']) }}
+        condition: eq(variables['Build.SourceBranchName'], 'master')
         env:
           COV_USER: $(COV_USER)
           COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
-          COVERITY_STREAM_NAME: $(COVERITY_STREAM_NAME)
 
       # Run incremental analysis
       - bash: |
-          set -x
           REMOVE="refs/heads/"
           export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
-          if [ "$COVERITY_STREAM_NAME_PARAM" == "" ]; then
-            export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
-          else
-            export COVERITY_STREAM_NAME=${COVERITY_STREAM_NAME_PARAM}
-          fi
+          export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
+          echo git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only
           git --no-pager diff origin/${SYSTEM_PULLREQUEST_TARGETBRANCHNAME} --name-only > coverity-changed-files.txt
+          echo Changed files---
           cat coverity-changed-files.txt
-          cov-run-desktop --dir idir \
-            --strip-path `pwd` \
-            --url ${COVERITY_URL} \
-            --on-new-cert trust \
-            --stream $COVERITY_STREAM_NAME \
-            --json-output-v7 coverity-results.json \
-            `cat coverity-changed-files.txt`
-          grep -q "does not exist or you do not have permission" idir/output/cov-run-desktop-log.txt
-          if [ $? -eq 0 ]; then
-            echo Incremental analysis failed due to no baseline in $COVERITY_STREAM_NAME
-            cov-analyze --dir idir \
-              --ticker-mode no-spin \
-              ${{ parameters.coverity_checkers }} \
-              --strip-path `pwd`
-            cov-format-errors --dir idir \
-              --json-output-v7 coverity-results.json
-          fi
+          echo cov-run-desktop --security-file coverity-license.dat --dir coverity-data/idir --strip-path `pwd` --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
+          cov-run-desktop --security-file coverity-license.dat --dir coverity-data/idir --strip-path `pwd` --url ${COVERITY_URL} --on-new-cert trust --stream $COVERITY_STREAM_NAME --json-output-v7 coverity-output-v7.json --webapp-security `cat coverity-changed-files.txt`
+          cat coverity-output-v7.json
         displayName: Analyze source (incremental)
         # Run full analysis only on builds of master, not on pull requests
         condition: eq(variables['Build.Reason'], 'PullRequest')
         env:
           COV_USER: $(COV_USER)
           COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
-          COVERITY_STREAM_NAME_PARAM: '${{ parameters.coverity_stream_name }}'
 
-      - task: SynopsysCoverityTask@0
-        inputs:
-          CoverityResultsFile: 'coverity-results.json'
-          CoverityUrl: '${{ parameters.coverity_url }}'
-          CoverityUsername: '${{ parameters.coverity_username }}'
-          CoverityPassphrase: '${{ parameters.coverity_passphrase }}'
-          CoverityProjectName: '${{ variables.COVERITY_PROJECT_NAME }}'
-        displayName: Coverity Pull Request Feedback
-        continueOnError: true
-        env:
-          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      - bash: git clone -q --depth 1 $SYNOPSYS_AZURE_TOOLS_REPO
+        displayName: Get Synopsys Azure Tools
+        # Get automation if either master or pull request
+        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
+
+      - script: pip3 install --upgrade pandas requests jsonapi_requests suds azure azure-devops
+        displayName: Install Python Module Dependencies
+        condition: or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.Reason'], 'PullRequest'))
 
       - bash: |
-          echo "##vso[task.setvariable variable=security_gate_status;isOutput=true;]success"
-        name: setSecurityGate
-        displayName: Set security gate status
+          REMOVE="refs/heads/"
+          export SYSTEM_PULLREQUEST_TARGETBRANCHNAME="${SYSTEM_PULLREQUEST_TARGETBRANCH//$REMOVE/}"
+          export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${SYSTEM_PULLREQUEST_TARGETBRANCHNAME}
+          echo python3 synopsys-azure-tools/azure-coverity-annotate-pr.py --debug 9 --coverity-json coverity-output-v7.json --url ${COVERITY_URL} --stream ${COVERITY_STREAM_NAME}
+          python3 synopsys-azure-tools/azure-coverity-annotate-pr.py --debug 9 --coverity-json coverity-output-v7.json --url ${COVERITY_URL} --stream ${COVERITY_STREAM_NAME}
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          COV_USER: $(COV_USER)
+          COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
+        displayName: Annotate pull request
+        # Only create work items for pushes to a main branch
+        condition: eq(variables['Build.Reason'], 'PullRequest')
 
-  - job: SecurityGate
-    pool: server
-    dependsOn:
-      - Coverity
-
-    variables:
-      COVERITY_PROJECT_NAME: '${{ parameters.coverity_project_name }}'
-      COVERITY_STREAM_NAME: '${{ parameters.coverity_stream_name }}'
-      security_gate_status: "$[ dependencies.Coverity.outputs['setSecurityGate.security_gate_status'] ]"
-
-    steps:
-      - task: synopsys-coverity-security-gate@0
-        inputs:
-          security_gate_status: '${{ variables.security_gate_status }}'
-          successCriteria: eq(variables.security_gate_status, 'success')
+      # Export newly found issues as Azure boards work items
+      - bash: |
+          REMOVE="refs/heads/"
+          export COVERITY_STREAM_NAME=${BUILD_REPOSITORY_NAME}-${BUILD_SOURCEBRANCHNAME}
+          echo python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --coverity-json coverity-output-v8.json --stream $COVERITY_STREAM_NAME
+          python3 synopsys-azure-tools/azure-coverity-issues-tool.py --dir ./coverity-data/idir --url ${COVERITY_URL} --coverity-json coverity-output-v8.json --stream $COVERITY_STREAM_NAME
+        displayName: Create Work Items for New Issues
+        # Only create work items for pushes to a main branch
+        condition: eq(variables['Build.SourceBranchName'], 'master')
+        env:
+          COV_USER: $(COV_USER)
+          COVERITY_PASSPHRASE: $(COVERITY_PASSPHRASE)
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
